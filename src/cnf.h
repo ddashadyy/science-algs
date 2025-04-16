@@ -5,6 +5,23 @@
 #include <inttypes.h>
 #include <stdio.h>
 
+#define AMOUNT_INDIVIDUALS 100
+
+typedef struct {
+    char* str;
+    size_t size;
+} CNF;
+
+typedef struct {
+    char* function;
+    double quality;
+    size_t size;
+} Candidate;
+
+// глобальная переменная для хранения КНФ
+extern CNF* generated_cnf;
+// глобальная переменная для хранения кандидатов на решение
+extern Candidate* generated_candidates;
 
 void init_random(); 
 
