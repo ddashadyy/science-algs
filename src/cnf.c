@@ -7,7 +7,10 @@
 #include <math.h>
 #include <windows.h>
 
-#define AMOUNT_INDIVIDUALS 100
+
+
+CNF* generated_cnf = NULL;
+Candidate* generated_candidates = NULL;
 
 
 void init_random() 
@@ -106,7 +109,8 @@ char* generate_cnf(size_t num_vars, size_t num_clauses, size_t max_clause_len)
         {
             size_t var_idx;
             size_t attempts = 0;
-            do {
+            do 
+            {
                 var_idx = rand() % num_vars;
                 attempts++;
                 
@@ -121,7 +125,7 @@ char* generate_cnf(size_t num_vars, size_t num_clauses, size_t max_clause_len)
             used_vars[var_idx] = 1;
 
             if (rand() % 3 == 0) 
-                strcat(cnf_str, "~");
+                strcat(cnf_str, "!");
             
             strcat(cnf_str, variables[var_idx]);
 
@@ -156,6 +160,13 @@ void write_cnf_in_file(size_t n)
     }
 
     char* cnf = generate_cnf(n, n + 2, n);
+
+    generated_cnf = (CNF*) malloc(sizeof(CNF));
+
+    // заполнение КНФ
+    generated_cnf->str = cnf;
+    generated_cnf->size = strlen(cnf);
+
     fputs(cnf, cnf_file);
     fputc('\n', cnf_file);
 
@@ -173,9 +184,17 @@ void write_candidates_in_file(size_t n)
         return;
     }
 
+    generated_candidates = (Candidate*) malloc(AMOUNT_INDIVIDUALS * sizeof(Candidate));
+
     for (size_t i = 0; i < AMOUNT_INDIVIDUALS; i++)
     {
         char* candidate = generate_random_boolean_function(n);
+
+        // заполнение кандидатов
+        generated_candidates[i].function = candidate;
+        generated_candidates[i].quality = 0.0;
+        generated_candidates[i].size = strlen(candidate);
+
         fputs(candidate, candidates);
         fputc('\n', candidates);
 
