@@ -1,29 +1,24 @@
 #ifndef GENETIC_CHF_H
 #define GENETIC_CHF_H
 
-
 #include "cnf.h"
 
-typedef struct {
-    char* function;
-    double quality;
-} Candidate;
+typedef enum 
+{
+    RANDOM,
+    LINEAR,
+    EXPONENTIAL
+} selection_function;
 
-
-// функция для загрузки КНФ из файла
-char* load_cnf_from_file(const char* file_name);
-
-// функция для загрузки кандидатов из файла
-Candidate* load_candidates_from_file(const char* file_name);
 
 // функция качества для кандидата на решение 
 double quality_function(const char* cnf, const char* candidate);
 
 // скрещивание
-Candidate* hybridization(Candidate* candidates);
+Candidate* hybridization(Candidate* candidates, size_t amount_hybridization, selection_function sf);
 
 // мутиация
-void mutate(Candidate* candidates);
+void mutate(Candidate* candidates, size_t amount_mutations, selection_function sf, size_t amount_gens_mutatuions);
 
 // отбор
 Candidate* selection(Candidate* candidates);
