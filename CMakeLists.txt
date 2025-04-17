@@ -17,6 +17,8 @@ endif()
 set(SOURCES
     src/main.c
     src/cnf.c
+    src/genetic_cnf.c
+    src/utils.c
 )
 
 add_executable(${PROJECT_NAME} WIN32 ${SOURCES})
