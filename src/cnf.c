@@ -22,7 +22,7 @@ char* generate_random_boolean_function(size_t n)
 {
     if (n == 0 || n > 64) return NULL; 
 
-    size_t size = 1ULL << n;
+    size_t size = n;
     
     char* function = (char*)malloc(size + 1);
     if (!function) return NULL;
