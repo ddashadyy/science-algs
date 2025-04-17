@@ -10,9 +10,9 @@ typedef enum
     EXPONENTIAL
 } selection_function;
 
-
+bool eval_disjunct(const char* disjunct, const char* function);
 // функция качества для кандидата на решение 
-double quality_function(const char* cnf, const char* candidate);
+double quality_function(char* cnf, const char* candidate);
 
 // скрещивание
 Candidate* hybridization(Candidate* candidates, size_t amount_hybridization, selection_function sf);
@@ -24,7 +24,7 @@ void mutate(Candidate* candidates, size_t amount_mutations, selection_function s
 Candidate* selection(Candidate* candidates);
 
 // генетический алгоритм
-void genetic_algorithm();
+char* genetic_algorithm();
 
 
 #endif // GENETIC_CHF_H
