@@ -175,7 +175,7 @@ void write_cnf_in_file(size_t n)
 
 }
 
-void write_candidates_in_file(size_t n)
+void write_candidates_in_file(size_t n, size_t population)
 {
     FILE* candidates = fopen("candidates.txt", "w+");
     if (!candidates)
@@ -184,9 +184,9 @@ void write_candidates_in_file(size_t n)
         return;
     }
 
-    generated_candidates = (Candidate*) malloc(AMOUNT_INDIVIDUALS * sizeof(Candidate));
+    generated_candidates = (Candidate*) malloc(population * sizeof(Candidate));
 
-    for (size_t i = 0; i < AMOUNT_INDIVIDUALS; i++)
+    for (size_t i = 0; i < population; i++)
     {
         char* candidate = generate_random_boolean_function(n);
 
