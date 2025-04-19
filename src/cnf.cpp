@@ -15,7 +15,7 @@ CNF::CNF(std::size_t amount_variables)
 
     if (cnf_out.is_open())
     {
-        auto cnf = generate_random_cnf(amount_variables, amount_variables + 2, amount_variables);
+        auto cnf = generate_random_cnf(amount_variables, amount_variables + 20, amount_variables + 10);
         cnf_out << cnf;
 
         this->str = cnf;
