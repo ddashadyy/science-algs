@@ -3,6 +3,9 @@
 #include <random>
 #include <algorithm>
 #include <iostream>
+#include <limits>
+
+constexpr double EPSILON = std::numeric_limits<double>::epsilon() * 10;
 
 GeneticAlgorithm::GeneticAlgorithm(
     std::size_t iterations,
@@ -21,33 +24,35 @@ GeneticAlgorithm::GeneticAlgorithm(
 
 GeneticAlgorithm::~GeneticAlgorithm() = default;
 
-std::string GeneticAlgorithm::execute() 
+std::pair<std::size_t, std::string> GeneticAlgorithm::execute() 
 {
     auto& candidates = this->_candidates.get_candidates();
+    std::size_t iteration_counter = 1;
 
     for (std::size_t i = 0; i < this->_iterations; i++)
     {    
         for (auto& candidate : candidates)
         {
             candidate.evaluate_quality_function(this->_cnf);
-            if (candidate.get_quality() == 1.0) return candidate.get_function();
+            if (std::fabs(candidate.get_quality() - 1.0) < EPSILON) 
+                return std::make_pair(iteration_counter, candidate.get_function());
+            
         }
-
-        std::cout << "starting genetic\n";
-
         hybridizate(candidates);
         mutate(candidates);
         do_selection(candidates);
+
+        ++iteration_counter;
     }
 
-    return std::string{"there is no solution"};
+    return std::make_pair(iteration_counter, std::string{"there is no solution"});
 }
 
 void GeneticAlgorithm::hybridizate(std::vector<Candidate>& candidates)
 {
     std::random_device rd;
     std::mt19937 gen(rd());
-    std::uniform_int_distribution<std::size_t> distrib(0, this->_population - 1);
+    std::uniform_int_distribution<std::size_t> distrib(0, this->_candidates.get_candidates()[0].get_function().size() - 1);
 
     for (std::size_t i = 0; i < this->_hybridizations; i += 2)
     {

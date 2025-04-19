@@ -2,15 +2,8 @@
 #define GENETIC_CHF_HPP
 
 #include "cnf.hpp"
-
-    // параметры генетического алгоритма
-    // 1. популяция
-    // 2. количество скрещиваний
-    // 3. количество мутаций
-    // 4. функция выбора на скрещивание и мутацию
-    //    случайная, линейная, экспоненциальная
-    // 5. количество генов при мутации 
-
+#include <utility>
+    
 
 class GeneticAlgorithm
 {
@@ -27,7 +20,7 @@ public:
     );
     ~GeneticAlgorithm();
 
-    std::string execute();
+   std::pair<std::size_t, std::string> execute();
 
 private:
 
@@ -46,22 +39,6 @@ private:
     std::size_t _amount_gens_mutation;
     selection_function _sf;
 };
-
-
-// // скрещивание
-// void hybridization(size_t amount_hybridization, selection_function sf, size_t population);
-
-// // мутиация
-// void mutate(size_t amount_mutations, selection_function sf, size_t amount_gens_mutatuions);
-
-// // компаратор для отбора кандидата
-// int compare_candidates(const void* lhs, const void* rhs);
-
-// // отбор
-// void selection(size_t population_size, size_t amount_hybridization);
-
-// // генетический алгоритм
-// char* genetic_algorithm(genetic_alg_params* params);
 
 
 #endif // GENETIC_CHF_HPP
