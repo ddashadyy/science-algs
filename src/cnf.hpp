@@ -1,7 +1,6 @@
 #ifndef CNF_HPP
 #define CNF_HPP
 
-
 #include <string>
 #include <vector>
 
@@ -9,8 +8,6 @@ enum class selection_function;
 class CNF;
 class Candidate;
 class Candidates;
-
-
 
 enum class selection_function
 {
@@ -43,7 +40,7 @@ public:
     Candidate(std::size_t function_length);
     Candidate(const std::string& str);
     ~Candidate();
-    
+
     std::string& get_function();
     double get_quality() const;
     void evaluate_quality_function(const CNF& cnf);
