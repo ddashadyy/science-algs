@@ -50,36 +50,57 @@ void GeneticAlgorithm::hybridizate(
     std::size_t population
 )
 {
+    if (candidates.empty() || candidates[0].get_function().empty() || candidates.size() < 2) 
+        return;
+
     std::random_device rd;
     std::mt19937 gen(rd());
-    std::uniform_int_distribution<std::size_t> distrib(0, this->_candidates.get_candidates()[0].get_function().size() - 1);
+    std::size_t func_size = candidates[0].get_function().size();
+    std::uniform_int_distribution<std::size_t> distrib(0, candidates.size() - 1);
 
-    for (std::size_t i = 0; i < hybridizations; i += 2)
+    for (std::size_t i = 0; i < hybridizations && candidates.size() < population; i++)
     {
         std::size_t first_parent_index = 0;
         std::size_t second_parent_index = 0;
 
-        switch (this->_sf)
-        {
-        case selection_function::RANDOM:
-            first_parent_index = distrib(gen);
-            break;
+        do {
+            switch (this->_sf)
+            {
+            case selection_function::RANDOM:
+                first_parent_index = distrib(gen);
+                do {
+                    second_parent_index = distrib(gen);
+                } while (second_parent_index == first_parent_index);
+                break;
 
-        case selection_function::LINEAR:
-            first_parent_index = i % (population - 1);
-            second_parent_index = i % (population - 1);
-            break;
+            case selection_function::LINEAR:
+                first_parent_index = i % candidates.size();
+                second_parent_index = (i + 1) % candidates.size();
+                if (second_parent_index == first_parent_index) {
+                    second_parent_index = (first_parent_index + 1) % candidates.size();
+                }
+                break;
 
-        case selection_function::EXPONENTIAL:
-            first_parent_index = (i * i) % (population - 1);
-            second_parent_index = (i * i) % (population - 1);
-            break;
+            case selection_function::EXPONENTIAL:
+                first_parent_index = (i * i) % candidates.size();
+                second_parent_index = ((i + 1) * (i + 1)) % candidates.size();
+                if (second_parent_index == first_parent_index) {
+                    second_parent_index = (first_parent_index + 1) % candidates.size();
+                }
+                break;
 
-        default:
-            break;
-        }
+            default:
+                first_parent_index = 0;
+                second_parent_index = 1 % candidates.size();
+                break;
+            }
+        } while (first_parent_index == second_parent_index);
 
-        std::size_t point = distrib(gen);
+        std::uniform_int_distribution<std::size_t> distrib_point(1, func_size - 1);
+        std::size_t point = distrib_point(gen);
+
+        std::cout << point << '\n';
+        std::cout << first_parent_index << ' ' << second_parent_index << '\n';
 
         std::string child =
             candidates[first_parent_index].get_function().substr(0, point) +
@@ -111,11 +132,11 @@ void GeneticAlgorithm::mutate(
             break;
 
         case selection_function::LINEAR:
-            candidate_index_to_mutate = i % (population - 1);
+            candidate_index_to_mutate = i % (candidates.size());
             break;
 
         case selection_function::EXPONENTIAL:
-            candidate_index_to_mutate = (i * i) % (population - 1);
+            candidate_index_to_mutate = (i * i) % (candidates.size());
             break;
 
         default:
