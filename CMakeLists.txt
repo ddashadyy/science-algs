@@ -43,4 +43,5 @@ target_link_libraries(${PROJECT_NAME}
     uuid.lib
     comdlg32.lib
     advapi32.lib
+    gdiplus.lib
 )
