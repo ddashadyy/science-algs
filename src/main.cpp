@@ -2,6 +2,8 @@
 #include <windows.h>
 #include <tchar.h>
 #include <locale.h>
+#include <algorithm>
+#include <gdiplus.h>
 
 #include "genetic_cnf.hpp"
 
@@ -19,12 +21,19 @@
 #define ID_GENES_EDIT 1010
 #define ID_SELECTION_FUNCTION_EDIT 1011
 #define ID_RUN_ALGORITHM_BUTTON 1012
+#define ID_GRAPH_WINDOW 1020 
+
+static std::vector<double> g_best_qualities;
 
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
+
 LRESULT CALLBACK GAWindowProc(HWND, UINT, WPARAM, LPARAM);
 LRESULT CALLBACK SAWindowProc(HWND, UINT, WPARAM, LPARAM);
+LRESULT CALLBACK GraphWindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
+
 void RegisterGAWindowClass(HINSTANCE hInstance);
 void RegisterSAWindowClass(HINSTANCE hInstance);
+void RegisterGraphWindowClass(HINSTANCE hInstance);
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
@@ -52,6 +61,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
     RegisterGAWindowClass(hInstance);
     RegisterSAWindowClass(hInstance);
+    RegisterGraphWindowClass(hInstance);
 
     HWND hWnd = CreateWindowEx(
         0,
@@ -185,9 +195,9 @@ LRESULT CALLBACK GAWindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPa
     static HWND hSelectionCombo, hGenerateCNFButton, hGenerateCandidatesButton;
     static HFONT hFont;
 
-    static CNF* p_cnf = nullptr;
-    static Candidates* pCandidates = nullptr;
-    static GeneticAlgorithm* pGeneticAlgorithm = nullptr;
+    static CNF *p_cnf = nullptr;
+    static Candidates *pCandidates = nullptr;
+    static GeneticAlgorithm *pGeneticAlgorithm = nullptr;
 
     switch (message)
     {
@@ -263,12 +273,10 @@ LRESULT CALLBACK GAWindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPa
                       WS_VISIBLE | WS_CHILD | BS_PUSHBUTTON,
                       20, 320, 380, 30, hWnd, (HMENU)ID_RUN_ALGORITHM_BUTTON, NULL, NULL);
 
-        EnumChildWindows(hWnd, [](HWND hwnd, LPARAM lParam) -> BOOL {
+        EnumChildWindows(hWnd, [](HWND hwnd, LPARAM lParam) -> BOOL
+                         {
                 SendMessage(hwnd, WM_SETFONT, lParam, TRUE);
-                return TRUE; 
-            }, 
-            (LPARAM)hFont
-        );
+                return TRUE; }, (LPARAM)hFont);
 
         break;
     }
@@ -292,7 +300,6 @@ LRESULT CALLBACK GAWindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPa
         }
         else if (wmId == ID_RUN_ALGORITHM_BUTTON)
         {
-
             if (p_cnf == nullptr || pCandidates == nullptr)
             {
                 MessageBoxW(hWnd, L"Сначала сгенерируйте КНФ и кандидатов!", L"Ошибка", MB_ICONERROR);
@@ -307,25 +314,26 @@ LRESULT CALLBACK GAWindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPa
 
             int selectionIndex = SendMessage(hSelectionCombo, CB_GETCURSEL, 0, 0);
             selection_function sf = selection_function::RANDOM;
-            if (selectionIndex == 1) sf = selection_function::LINEAR;
-            else if (selectionIndex == 2) sf = selection_function::EXPONENTIAL;
+            if (selectionIndex == 1)
+                sf = selection_function::LINEAR;
+            else if (selectionIndex == 2)
+                sf = selection_function::EXPONENTIAL;
 
             pGeneticAlgorithm = new GeneticAlgorithm(
                 *p_cnf,
                 *pCandidates,
-                sf
-            );
+                sf);
 
             auto result = pGeneticAlgorithm->execute(
-                iterations, 
-                population, 
-                hybridizations, 
-                mutations, 
-                amount_gens_mutations
-            );
+                iterations,
+                population,
+                hybridizations,
+                mutations,
+                amount_gens_mutations);
 
-            std::size_t iteration = result.first;
-            std::string answer = result.second;
+            std::size_t iteration = std::get<0>(result);
+            std::vector<double> best_qualities = std::get<1>(result);
+            std::string answer = std::get<2>(result);
 
             std::wstring wAnswer(answer.begin(), answer.end());
 
@@ -334,8 +342,25 @@ LRESULT CALLBACK GAWindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPa
             message += L"Ответ: " + wAnswer;
 
             MessageBoxW(hWnd, message.c_str(), L"Результат выполнения", MB_OK);
-        }
+            InvalidateRect(hWnd, NULL, TRUE);
 
+            g_best_qualities = best_qualities;
+
+            // Создаем новое окно для графика
+            HWND hGraphWnd = CreateWindowEx(
+                0,
+                _T("GraphWindowClass"),
+                _T("График функции качества"),
+                WS_OVERLAPPEDWINDOW,
+                CW_USEDEFAULT, CW_USEDEFAULT, 600, 400,
+                hWnd, NULL, NULL, NULL);
+
+            if (hGraphWnd)
+            {
+                ShowWindow(hGraphWnd, SW_SHOW);
+                UpdateWindow(hGraphWnd);
+            }
+        }
         break;
     }
     case WM_DESTROY:
@@ -360,6 +385,7 @@ LRESULT CALLBACK GAWindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPa
 
         if (hFont)
             DeleteObject(hFont);
+
         DestroyWindow(hWnd);
         break;
     }
@@ -391,4 +417,116 @@ LRESULT CALLBACK SAWindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPa
         return DefWindowProc(hWnd, message, wParam, lParam);
     }
     return 0;
+}
+
+LRESULT CALLBACK GraphWindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
+{
+    switch (message)
+    {
+    case WM_CREATE:
+    {
+        ULONG_PTR gdiplusToken;
+        Gdiplus::GdiplusStartupInput gdiplusStartupInput;
+        Gdiplus::GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, NULL);
+        break;
+    }
+    case WM_PAINT:
+    {
+        PAINTSTRUCT ps;
+        HDC hdc = BeginPaint(hWnd, &ps);
+        Gdiplus::Graphics graphics(hdc);
+
+        RECT rect;
+        GetClientRect(hWnd, &rect);
+        int width = rect.right;
+        int height = rect.bottom;
+
+        const int margin_left = 50;
+        const int margin_bottom = 50;
+        const int margin_top = 30;
+        const int margin_right = 20;
+
+        int graph_width = width - margin_left - margin_right;
+        int graph_height = height - margin_top - margin_bottom;
+
+        int x0 = margin_left;
+        int y0 = height - margin_bottom;
+
+        Gdiplus::Pen axisPen(Gdiplus::Color(255, 0, 0, 0), 2);
+        Gdiplus::Pen graphPen(Gdiplus::Color(255, 0, 0, 255), 3);
+
+        Gdiplus::Font font(L"Arial", 10);
+        Gdiplus::SolidBrush brush(Gdiplus::Color(255, 0, 0, 0));
+
+        graphics.DrawLine(&axisPen, x0, y0, x0 + graph_width, y0); 
+        graphics.DrawLine(&axisPen, x0, y0, x0, margin_top);       
+
+        for (int i = 0; i <= 10; ++i)
+        {
+            double y_val = i / 10.0;
+            int y = y0 - static_cast<int>(y_val * graph_height);
+            std::wstring label = std::to_wstring(y_val).substr(0, 3); // "0.0", "0.1", ...
+            graphics.DrawString(label.c_str(), -1, &font, Gdiplus::PointF((float)x0 - 40.0f, (float)y - 6), &brush);
+
+            graphics.DrawLine(&axisPen, x0 - 5, y, x0, y);
+        }
+
+        if (!g_best_qualities.empty())
+        {
+            size_t total_points = g_best_qualities.size();
+            int label_step = std::max(1, static_cast<int>(total_points / 10)); 
+
+            for (size_t i = 0; i < total_points; i += label_step)
+            {
+                int x = x0 + static_cast<int>((i / (double)(total_points - 1)) * graph_width);
+                std::wstring label = std::to_wstring(i);
+                graphics.DrawString(label.c_str(), -1, &font, Gdiplus::PointF((float)x - 10.0f, (float)y0 + 5.0f), &brush);
+
+                graphics.DrawLine(&axisPen, x, y0, x, y0 + 5); // Черточка на оси X
+            }
+
+            for (size_t i = 1; i < total_points; ++i)
+            {
+                double x1 = x0 + ((i - 1) / (double)(total_points - 1)) * graph_width;
+                double y1 = y0 - g_best_qualities[i - 1] * graph_height;
+
+                double x2 = x0 + (i / (double)(total_points - 1)) * graph_width;
+                double y2 = y0 - g_best_qualities[i] * graph_height;
+
+                graphics.DrawLine(&graphPen, (float)x1, (float)y1, (float)x2, (float)y2);
+            }
+        }
+        else
+        {
+            MessageBoxW(hWnd, L"Нет данных для построения графика", L"Ошибка", MB_OK);
+        }
+
+        EndPaint(hWnd, &ps);
+        break;
+    }
+
+    case WM_DESTROY:
+    {
+        Gdiplus::GdiplusShutdown(0);
+        DestroyWindow(hWnd);
+        break;
+    }
+    default:
+        return DefWindowProc(hWnd, message, wParam, lParam);
+    }
+    return 0;
+}
+
+void RegisterGraphWindowClass(HINSTANCE hInstance)
+{
+    WNDCLASSEX wc = {0};
+    wc.cbSize = sizeof(WNDCLASSEX);
+    wc.style = CS_HREDRAW | CS_VREDRAW;
+    wc.lpfnWndProc = GraphWindowProc;
+    wc.hInstance = hInstance;
+    wc.hCursor = LoadCursor(NULL, IDC_ARROW);
+    wc.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
+    wc.lpszClassName = _T("GraphWindowClass");
+
+    RegisterClassEx(&wc);
 }
