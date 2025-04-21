@@ -2,7 +2,9 @@
 #define GENETIC_CHF_HPP
 
 #include "cnf.hpp"
+
 #include <utility>
+#include <tuple>
 
 class GeneticAlgorithm
 {
@@ -13,7 +15,7 @@ public:
         selection_function sf);
     ~GeneticAlgorithm();
 
-    std::pair<std::size_t, std::string> execute(
+    std::tuple<std::size_t, std::vector<double>, std::string> execute(
         std::size_t iterations,
         std::size_t population,
         std::size_t hybridizations,

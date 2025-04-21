@@ -12,9 +12,9 @@ GeneticAlgorithm::GeneticAlgorithm(
     const Candidates &candidates,
     selection_function sf) : _cnf(cnf), _candidates(candidates), _sf(sf) {}
 
-GeneticAlgorithm::~GeneticAlgorithm() { std::cout << "GeneticAlgorithm destroyed\n"; }
+GeneticAlgorithm::~GeneticAlgorithm() = default;
 
-std::pair<std::size_t, std::string> GeneticAlgorithm::execute(
+std::tuple<std::size_t, std::vector<double>, std::string> GeneticAlgorithm::execute(
     std::size_t iterations,
     std::size_t population,
     std::size_t hybridizations,
@@ -25,23 +25,36 @@ std::pair<std::size_t, std::string> GeneticAlgorithm::execute(
     auto& candidates = this->_candidates.get_candidates();
     std::size_t iteration_counter = 1;
 
+    std::vector<double> best_qualities;
+
     for (std::size_t i = 0; i < iterations; i++)
     {
         for (auto& candidate : candidates)
         {
             candidate.evaluate_quality_function(this->_cnf);
             if (std::fabs(candidate.get_quality() - 1.0) < EPSILON)
-                return std::make_pair(iteration_counter, candidate.get_function());
+            {
+                if (iteration_counter == 1) 
+                    return std::make_tuple(
+                        iteration_counter, 
+                        std::vector<double>{candidate.get_quality()}, 
+                        candidate.get_function()
+                    );
+                
+                best_qualities.emplace_back(1.0);
+                return std::make_tuple(iteration_counter, best_qualities, candidate.get_function());
+            }
         }
 
         hybridizate(candidates, hybridizations, population);
         mutate(candidates, population, mutations, amount_gens_mutations);
         do_selection(candidates, population);
 
+        best_qualities.emplace_back(candidates.front().get_quality());
         ++iteration_counter;
     }
 
-    return std::make_pair(iteration_counter, std::string{"there is no solution"});
+    return std::make_tuple(iteration_counter, std::vector<double>{0.0}, std::string{"there is no solution"});
 }
 
 void GeneticAlgorithm::hybridizate(
@@ -63,12 +76,14 @@ void GeneticAlgorithm::hybridizate(
         std::size_t first_parent_index = 0;
         std::size_t second_parent_index = 0;
 
-        do {
+        do 
+        {
             switch (this->_sf)
             {
             case selection_function::RANDOM:
                 first_parent_index = distrib(gen);
-                do {
+                do 
+                {
                     second_parent_index = distrib(gen);
                 } while (second_parent_index == first_parent_index);
                 break;
@@ -76,17 +91,19 @@ void GeneticAlgorithm::hybridizate(
             case selection_function::LINEAR:
                 first_parent_index = i % candidates.size();
                 second_parent_index = (i + 1) % candidates.size();
-                if (second_parent_index == first_parent_index) {
+
+                if (second_parent_index == first_parent_index) 
                     second_parent_index = (first_parent_index + 1) % candidates.size();
-                }
+                
                 break;
 
             case selection_function::EXPONENTIAL:
                 first_parent_index = (i * i) % candidates.size();
                 second_parent_index = ((i + 1) * (i + 1)) % candidates.size();
-                if (second_parent_index == first_parent_index) {
+
+                if (second_parent_index == first_parent_index) 
                     second_parent_index = (first_parent_index + 1) % candidates.size();
-                }
+                
                 break;
 
             default:
@@ -99,8 +116,6 @@ void GeneticAlgorithm::hybridizate(
         std::uniform_int_distribution<std::size_t> distrib_point(1, func_size - 1);
         std::size_t point = distrib_point(gen);
 
-        std::cout << point << '\n';
-        std::cout << first_parent_index << ' ' << second_parent_index << '\n';
 
         std::string child =
             candidates[first_parent_index].get_function().substr(0, point) +
