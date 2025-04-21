@@ -23,7 +23,7 @@ std::tuple<std::size_t, std::vector<double>, std::string> GeneticAlgorithm::exec
 )
 {
     auto& candidates = this->_candidates.get_candidates();
-    std::size_t iteration_counter = 1;
+    std::size_t iteration_counter = 0;
 
     std::vector<double> best_qualities;
 
