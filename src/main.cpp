@@ -44,7 +44,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     _CRT_UNUSED(hPrevInstance);
     _CRT_UNUSED(lpCmdLine);
 
-    WNDCLASSEX wc = {0};
+    WNDCLASSEX wc;
     wc.cbSize = sizeof(WNDCLASSEX);
     wc.style = CS_HREDRAW | CS_VREDRAW;
     wc.lpfnWndProc = WndProc;
@@ -92,7 +92,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 void RegisterGAWindowClass(HINSTANCE hInstance)
 {
-    WNDCLASSEX wc = {0};
+    WNDCLASSEX wc;
     wc.cbSize = sizeof(WNDCLASSEX);
     wc.style = CS_HREDRAW | CS_VREDRAW;
     wc.lpfnWndProc = GAWindowProc;
@@ -106,7 +106,7 @@ void RegisterGAWindowClass(HINSTANCE hInstance)
 
 void RegisterSAWindowClass(HINSTANCE hInstance)
 {
-    WNDCLASSEX wc = {0};
+    WNDCLASSEX wc;
     wc.cbSize = sizeof(WNDCLASSEX);
     wc.style = CS_HREDRAW | CS_VREDRAW;
     wc.lpfnWndProc = SAWindowProc;
@@ -191,8 +191,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 LRESULT CALLBACK GAWindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
-    static HWND hIterationsEdit, hPopulationEdit, hCrossoversEdit, hMutationsEdit, hGenesEdit, hFunctionSizeEdit;
-    static HWND hSelectionCombo, hGenerateCNFButton, hGenerateCandidatesButton;
+    
+    static HWND hSelectionCombo;
     static HFONT hFont;
 
     static CNF *p_cnf = nullptr;
@@ -215,38 +215,38 @@ LRESULT CALLBACK GAWindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPa
         CreateWindowW(L"STATIC", L"Размер функции (переменных):",
                       WS_VISIBLE | WS_CHILD,
                       20, 60, 200, 20, hWnd, NULL, NULL, NULL);
-        hFunctionSizeEdit = CreateWindowW(L"EDIT", L"10",
+        CreateWindowW(L"EDIT", L"10",
                                           WS_VISIBLE | WS_CHILD | WS_BORDER | ES_NUMBER,
                                           220, 60, 100, 20, hWnd, (HMENU)ID_FUNCTION_SIZE_EDIT, NULL, NULL);
 
         CreateWindowW(L"STATIC", L"Количество итераций:",
                       WS_VISIBLE | WS_CHILD,
                       20, 90, 200, 20, hWnd, NULL, NULL, NULL);
-        hIterationsEdit = CreateWindowW(L"EDIT", L"1000",
+        CreateWindowW(L"EDIT", L"1000",
                                         WS_VISIBLE | WS_CHILD | WS_BORDER | ES_NUMBER,
                                         220, 90, 100, 20, hWnd, (HMENU)ID_ITERATIONS_EDIT, NULL, NULL);
         CreateWindowW(L"STATIC", L"Размер популяции:",
                       WS_VISIBLE | WS_CHILD,
                       20, 120, 200, 20, hWnd, NULL, NULL, NULL);
-        hPopulationEdit = CreateWindowW(L"EDIT", L"100",
+        CreateWindowW(L"EDIT", L"100",
                                         WS_VISIBLE | WS_CHILD | WS_BORDER | ES_NUMBER,
                                         220, 120, 100, 20, hWnd, (HMENU)ID_POPULATION_EDIT, NULL, NULL);
         CreateWindowW(L"STATIC", L"Количество скрещиваний:",
                       WS_VISIBLE | WS_CHILD,
                       20, 150, 200, 20, hWnd, NULL, NULL, NULL);
-        hCrossoversEdit = CreateWindowW(L"EDIT", L"50",
+        CreateWindowW(L"EDIT", L"50",
                                         WS_VISIBLE | WS_CHILD | WS_BORDER | ES_NUMBER,
                                         220, 150, 100, 20, hWnd, (HMENU)ID_CROSSOVERS_EDIT, NULL, NULL);
         CreateWindowW(L"STATIC", L"Количество мутаций:",
                       WS_VISIBLE | WS_CHILD,
                       20, 180, 200, 20, hWnd, NULL, NULL, NULL);
-        hMutationsEdit = CreateWindowW(L"EDIT", L"20",
+        CreateWindowW(L"EDIT", L"20",
                                        WS_VISIBLE | WS_CHILD | WS_BORDER | ES_NUMBER,
                                        220, 180, 100, 20, hWnd, (HMENU)ID_MUTATIONS_EDIT, NULL, NULL);
         CreateWindowW(L"STATIC", L"Количество генов при мутации:",
                       WS_VISIBLE | WS_CHILD,
                       20, 210, 200, 20, hWnd, NULL, NULL, NULL);
-        hGenesEdit = CreateWindowW(L"EDIT", L"3",
+        CreateWindowW(L"EDIT", L"3",
                                    WS_VISIBLE | WS_CHILD | WS_BORDER | ES_NUMBER,
                                    220, 210, 100, 20, hWnd, (HMENU)ID_GENES_EDIT, NULL, NULL);
         CreateWindowW(L"STATIC", L"Функция выбора:",
@@ -261,11 +261,11 @@ LRESULT CALLBACK GAWindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPa
         SendMessageW(hSelectionCombo, CB_ADDSTRING, 0, (LPARAM)L"Экспоненциальная");
         SendMessageW(hSelectionCombo, CB_SETCURSEL, 0, 0);
 
-        hGenerateCNFButton = CreateWindowW(L"BUTTON", L"Сгенерировать КНФ",
+        CreateWindowW(L"BUTTON", L"Сгенерировать КНФ",
                                            WS_VISIBLE | WS_CHILD | BS_PUSHBUTTON,
                                            20, 280, 180, 30, hWnd, (HMENU)ID_GENERATE_CNF_BUTTON, NULL, NULL);
 
-        hGenerateCandidatesButton = CreateWindowW(L"BUTTON", L"Сгенерировать кандидатов",
+        CreateWindowW(L"BUTTON", L"Сгенерировать кандидатов",
                                                   WS_VISIBLE | WS_CHILD | BS_PUSHBUTTON,
                                                   220, 280, 180, 30, hWnd, (HMENU)ID_GENERATE_CANDIDATES_BUTTON, NULL, NULL);
 
@@ -306,11 +306,45 @@ LRESULT CALLBACK GAWindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPa
                 break;
             }
 
+            std::size_t function_length = GetDlgItemInt(hWnd, ID_FUNCTION_SIZE_EDIT, NULL, FALSE);
             std::size_t population = GetDlgItemInt(hWnd, ID_POPULATION_EDIT, NULL, FALSE);
             std::size_t iterations = GetDlgItemInt(hWnd, ID_ITERATIONS_EDIT, NULL, FALSE);
             std::size_t hybridizations = GetDlgItemInt(hWnd, ID_CROSSOVERS_EDIT, NULL, FALSE);
             std::size_t mutations = GetDlgItemInt(hWnd, ID_MUTATIONS_EDIT, NULL, FALSE);
             std::size_t amount_gens_mutations = GetDlgItemInt(hWnd, ID_GENES_EDIT, NULL, FALSE);
+
+            if (hybridizations > population)
+            {
+                MessageBoxW(
+                    hWnd, 
+                    L"Количество скрещиваний не может быть больше размера популяции", 
+                    L"Ошибка",
+                    MB_ICONERROR
+                );
+                break;
+            }
+
+            if (mutations > population)
+            {
+                MessageBoxW(
+                    hWnd, 
+                    L"Количество мутаций не может быть больше размера популяции", 
+                    L"Ошибка",
+                    MB_ICONERROR
+                );
+                break;
+            }
+
+            if (amount_gens_mutations > function_length)
+            {
+                MessageBoxW(
+                    hWnd, 
+                    L"Количество генов при мутации не может быть больше размера функций", 
+                    L"Ошибка",
+                    MB_ICONERROR
+                );
+                break;
+            }
 
             int selectionIndex = SendMessage(hSelectionCombo, CB_GETCURSEL, 0, 0);
             selection_function sf = selection_function::RANDOM;
@@ -519,7 +553,7 @@ LRESULT CALLBACK GraphWindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM 
 
 void RegisterGraphWindowClass(HINSTANCE hInstance)
 {
-    WNDCLASSEX wc = {0};
+    WNDCLASSEX wc;
     wc.cbSize = sizeof(WNDCLASSEX);
     wc.style = CS_HREDRAW | CS_VREDRAW;
     wc.lpfnWndProc = GraphWindowProc;
