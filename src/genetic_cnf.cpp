@@ -34,7 +34,7 @@ std::tuple<std::size_t, std::vector<double>, std::string> GeneticAlgorithm::exec
             candidate.evaluate_quality_function(this->_cnf);
             if (std::fabs(candidate.get_quality() - 1.0) < EPSILON)
             {
-                if (iteration_counter == 1) 
+                if (iteration_counter == 0) 
                     return std::make_tuple(
                         iteration_counter, 
                         std::vector<double>{candidate.get_quality()}, 
