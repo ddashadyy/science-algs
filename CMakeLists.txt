@@ -24,15 +24,13 @@ else()
     add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
-set(SOURCES
-    src/main.cpp
+add_library(${PROJECT_NAME}_objs OBJECT
     src/cnf.cpp
     src/genetic_cnf.cpp
+    src/simulated_annealing_cnf.cpp
 )
 
-add_executable(${PROJECT_NAME} WIN32 ${SOURCES})
-
-target_link_libraries(${PROJECT_NAME} 
+target_link_libraries(${PROJECT_NAME}_objs PRIVATE
     kernel32.lib
     user32.lib
     gdi32.lib
@@ -45,3 +43,6 @@ target_link_libraries(${PROJECT_NAME}
     advapi32.lib
     gdiplus.lib
 )
+
+add_executable(${PROJECT_NAME} WIN32 src/main.cpp)
+target_link_libraries(${PROJECT_NAME} PRIVATE ${PROJECT_NAME}_objs)

@@ -144,6 +144,15 @@ Candidate::Candidate() = default;
 Candidate::Candidate(std::size_t function_length) : quality(0.0)
 {
     this->function = generate_random_boolean_function(function_length);
+
+    std::ofstream candidate_out;
+    candidate_out.open("candidate.txt");
+
+    if (candidate_out.is_open())
+        candidate_out << this->function;
+    
+
+    candidate_out.close();
 }
 
 Candidate::Candidate(const std::string& str)
@@ -248,6 +257,11 @@ std::string Candidate::generate_random_boolean_function(std::size_t length)
 std::string& Candidate::get_function()
 {
     return this->function;
+}
+
+void Candidate::set_function(const std::string& function)
+{
+    this->function = function;
 }
 
 double Candidate::get_quality() const

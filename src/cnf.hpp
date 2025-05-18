@@ -5,6 +5,7 @@
 #include <vector>
 
 enum class selection_function;
+enum class cooling_type;
 class CNF;
 class Candidate;
 class Candidates;
@@ -12,6 +13,12 @@ class Candidates;
 enum class selection_function
 {
     RANDOM,
+    LINEAR,
+    EXPONENTIAL
+};
+
+enum class cooling_type
+{
     LINEAR,
     EXPONENTIAL
 };
@@ -42,6 +49,7 @@ public:
     ~Candidate();
 
     std::string& get_function();
+    void set_function(const std::string& function);
     double get_quality() const;
     void evaluate_quality_function(const CNF& cnf);
 
